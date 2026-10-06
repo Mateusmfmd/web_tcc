@@ -4,7 +4,7 @@ Página web demonstrativa do projeto **M.O.T.I.O.N.**, uma solução de tecnolog
 
 ## Conteúdo
 
-- `motion-web-logo-header.html`: página web estática para apresentação do projeto.
+- `motion-web.html`: página web estática para apresentação do projeto.
 
 ## Como executar
 
@@ -14,4 +14,4 @@ cd web_tcc
 python3 -m http.server 8000
 ```
 
-Abra `http://localhost:8000/motion-web-logo-header.html` no navegador.
+Abra `http://localhost:8000/motion-web.html` no navegador.
