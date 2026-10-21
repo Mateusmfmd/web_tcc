@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring } from 'motion/react'
 import {
   ArrowDown, ArrowRight, ArrowUpRight, BarChart3, Bell, CalendarDays, Check,
@@ -9,12 +9,13 @@ import {
   Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { PhoneUI } from './mockups'
-import { HardwareViewer } from './components/HardwareViewer'
 import {
   boardCards, buttonOrder, modules, pathSteps, weeklyData,
   type BoardCategory, type ButtonColor,
 } from './data'
 import { useMotionStore } from './store'
+const HardwareViewer = lazy(() => import('./components/HardwareViewer').then((module) => ({ default: module.HardwareViewer })))
+const ButtonGallery3D = lazy(() => import('./components/ButtonGallery3D').then((module) => ({ default: module.ButtonGallery3D })))
 
 const navItems = [
   { href: '#produto', label: 'O projeto' },
@@ -212,6 +213,40 @@ function ProductIntro() {
   )
 }
 
+function DeferredHardwareViewer({ onSelectButton }: { onSelectButton: (color: ButtonColor) => void }) {
+  const stageRef = useRef<HTMLDivElement>(null)
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    const node = stageRef.current
+    if (!node) return
+    if (!('IntersectionObserver' in window)) { setReady(true); return }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setReady(true); observer.disconnect() }
+    }, { rootMargin: '250px' })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
+  const photo = <img className="hardware-fallback-photo" src={`${import.meta.env.BASE_URL}hardware-real.png`} alt="Protótipo físico azul com cinco botões coloridos e seis conectores" />
+
+  return (
+    <div ref={stageRef} className="hardware-lazy-frame">
+      {ready ? (
+        <Suspense fallback={<div className="hardware-viewer">{photo}<span className="viewer-status"><span />Preparando o modelo 3D.</span></div>}>
+          <HardwareViewer onSelectButton={onSelectButton} />
+        </Suspense>
+      ) : (
+        <div className="hardware-viewer">
+          {photo}
+          <span className="viewer-status"><span />A foto aparece agora; o 3D carrega nesta seção.</span>
+          <button className="viewer-photo-toggle" type="button" onClick={() => setReady(true)}>Carregar modelo 3D</button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function ButtonExperience() {
   const { buttonPhrases, setButtonPhrase, speakPhrase } = useMotionStore()
   const [selected, setSelected] = useState<ButtonColor>('amarelo')
@@ -266,7 +301,7 @@ function ButtonExperience() {
               <span><span className="status-light" /> Protótipo M.O.T.I.O.N.</span>
               <DemoBadge>Modelo demonstrativo</DemoBadge>
             </div>
-            <HardwareViewer onSelectButton={choose} />
+            <DeferredHardwareViewer onSelectButton={choose} />
             <div className="hardware-caption">
               <span>Gire com o mouse ou com o dedo</span>
               <span>Foto real do protótipo <a href="#pesquisa">ver contexto</a></span>
@@ -302,11 +337,75 @@ function ButtonExperience() {
               ><RotateCcw size={15} /> Restaurar</button>
             </div>
             <p className="keyboard-hint">Também dá para escolher pelas teclas 1 a 5.</p>
+            <ol className="button-how-steps" aria-label="Como funciona">
+              <li><b>Escolha</b><span>Toque numa das cinco teclas.</span></li>
+              <li><b>Monte</b><span>Ajuste a frase ligada à cor.</span></li>
+              <li><b>Comunique</b><span>Salve e ouça a mensagem em voz alta.</span></li>
+            </ol>
             <p className="sr-only" role="status" aria-live="polite">{status}</p>
           </div>
         </div>
+        <div className="individual-buttons">
+          <div className="individual-buttons-heading">
+            <div>
+              <Eyebrow>As cinco teclas</Eyebrow>
+              <h3>Veja cada botão de perto.</h3>
+            </div>
+            <span>Toque numa tecla; no celular, deslize para ver todas.</span>
+          </div>
+          <div className="button-gallery-scroll" role="region" aria-label="Galeria dos cinco botões físicos em 3D" tabIndex={0}>
+            <div className="button-gallery-track">
+              <DeferredButtonGallery selectedColor={selected} onSelectButton={choose} />
+              <div className="button-gallery-captions" aria-hidden="true">
+                {buttonOrder.map((color, index) => (
+                  <span key={color} className={`key-${color}${selected === color ? ' is-selected' : ''}`}>
+                    <b>{index + 1}</b>{colorNames[color]}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+          <p className="button-gallery-status" aria-live="polite">
+            Tecla {colorNames[selected].toLowerCase()} selecionada. A frase correspondente aparece no campo acima.
+          </p>
+        </div>
       </div>
     </section>
+  )
+}
+
+function DeferredButtonGallery({ selectedColor, onSelectButton }: {
+  selectedColor: ButtonColor
+  onSelectButton: (color: ButtonColor) => void
+}) {
+  const stageRef = useRef<HTMLDivElement>(null)
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    const node = stageRef.current
+    if (!node) return
+    if (!('IntersectionObserver' in window)) { setReady(true); return }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setReady(true); observer.disconnect() }
+    }, { rootMargin: '280px' })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div ref={stageRef} className="button-gallery-lazy">
+      {ready ? (
+        <Suspense fallback={<div className="button-gallery-loading">Preparando os cinco botões…</div>}>
+          <ButtonGallery3D selectedColor={selectedColor} onSelectButton={onSelectButton} />
+        </Suspense>
+      ) : (
+        <div className="button-gallery-placeholder">
+          <span aria-hidden="true">● ● ● ● ●</span>
+          <p>Os cinco botões 3D aparecem aqui. Role até esta parte para explorá-los.</p>
+          <button type="button" onClick={() => setReady(true)}>Carregar os modelos agora</button>
+        </div>
+      )}
+    </div>
   )
 }
 
