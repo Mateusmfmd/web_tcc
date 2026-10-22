@@ -1,19 +1,28 @@
-# Prévia React do M.O.T.I.O.N.
+# Fonte React do M.O.T.I.O.N.
 
-Esta é a fonte React + TypeScript da nova prévia. O build estático correspondente fica em `../motion-redesign/`; a antiga `../motion-web.html` foi preservada.
+Esta pasta contém a fonte React, TypeScript e Vite da reformulação. Na branch de avaliação, o build também é integrado à raiz do `web_tcc`; `motion-web-legacy.html` preserva a página anterior para comparação. A pasta `../motion-redesign/` continua disponível como demonstração estática isolada.
 
-## Executar para desenvolvimento
+## Desenvolvimento
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-## Atualizar a página estática de revisão
+## Gerar a prévia integrada na raiz do `web_tcc`
+
+```bash
+pnpm install --frozen-lockfile
+pnpm build:root-preview
+```
+
+O comando atualiza `../index.html`, `../motion-web.html` e os arquivos do build. Não remove outros arquivos em `../assets/`, inclusive os modelos de hardware da versão anterior.
+
+## Atualizar a cópia estática isolada
 
 ```bash
 pnpm install --frozen-lockfile
 pnpm build:github
 ```
 
-Esse comando compila a aplicação e atualiza `../motion-redesign/` com os arquivos de produção. Para abrir a página localmente, inicie um servidor HTTP na raiz do repositório e acesse `http://localhost:8000/motion-redesign/motion-web.html`.
+Esse comando atualiza `../motion-redesign/`; para abri-la, inicie um servidor HTTP na raiz do repositório e acesse `http://localhost:8000/motion-redesign/motion-web.html`.

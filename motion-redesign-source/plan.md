@@ -6,7 +6,7 @@ Reformular a prévia enviada em `motion-site-v3.zip` como um site infantil, acol
 
 A base continuará em React, TypeScript e Vite. O código existente (Motion, Zustand, Recharts e Lucide) será reutilizado onde fizer sentido, em vez de reconstruir funcionalidades estáveis. A hierarquia visual ficará mais claramente infantil, com áreas de toque generosas, formas arredondadas com intenção e uma paleta que conversa com o azul do protótipo físico e os cartões coloridos do app. Textos em pt-BR serão revistos para soar diretos, carinhosos e naturais, sem clichês de produto ou frases genéricas. Os padrões de composição citados em `COMPONENTS.md` servirão de referência; nenhum código de componente será copiado sem licença compatível.
 
-A seção do protótipo manterá o aparelho completo em 3D e ganhará uma galeria próxima com cinco botões físicos 3D individuais, um por cor do protótipo. Um modelo GLB de botão será reutilizado em instâncias Three.js separadas, com a cor aplicada a cada instância e cada peça tendo área clicável própria. Tocar ou ativar um botão no teclado sincroniza sua cor com a frase editável; uma explicação ao lado descreve a sequência: escolher um botão, associar/editar uma frase e ouvir/compartilhar a mensagem. A fotografia fornecida continua como referência e alternativa estática/acessível. O 3D é demonstrativo, não um modelo CAD para fabricação.
+A seção do protótipo manterá o aparelho completo em 3D e a galeria de cinco botões coloridos 3D, clicáveis e sincronizados com as frases editáveis. Também preservará os modelos 3D recentes já presentes no `web_tcc` (`botao-tatil.glb` e `sensor-ultrassonico.glb`) numa área técnica própria, com rotação por mouse/toque e carregamento adiado até a seção se aproximar da tela. A explicação continuará mostrando o percurso: escolher um botão, associar/editar uma frase e ouvir/compartilhar a mensagem. A foto real permanece como referência e alternativa estática/acessível; se o visualizador externo de componentes não carregar, a página mantém instrução de fallback. O 3D é demonstrativo, não um modelo CAD para fabricação.
 
 ## Design
 
@@ -32,6 +32,7 @@ A seção do protótipo manterá o aparelho completo em 3D e ganhará uma galeri
 - `src/store.ts`: estado local persistido com salvaguardas e fala pt-BR.
 - `src/styles.css` e `src/polish.css`: tokens, layout responsivo, foco, contraste e movimento reduzido.
 - `public/hardware-real.png`: fotografia fornecida do protótipo.
+- `public/assets/botao-tatil.glb` e `public/assets/sensor-ultrassonico.glb`: modelos do hardware que chegaram na atualização mais recente de `web_tcc`.
 - `public/motion-button.glb` e `public/aac-tactile-button.glb`: aparelho completo e modelo gerado de uma tecla individual, instanciada em cinco cores no visualizador.
 - `src/components/ButtonGallery3D.tsx`: cena Three.js independente, carregamento do GLB, seleção por toque e feedback de pressão.
 - `public/manus-routes.json`: manifesto da rota.
@@ -39,6 +40,6 @@ A seção do protótipo manterá o aparelho completo em 3D e ganhará uma galeri
 
 ## Implementação e entrega
 
-Importar o projeto Vite/React do ZIP na prévia gerenciada, preservar o lockfile e executar a instalação/build com a versão de pnpm declarada. Carregar o GLB com Three.js sem bloquear o restante da página; oferecer imagem de fallback caso WebGL não esteja disponível, o GLB falhe ou a pessoa prefira uma experiência estática. Registrar diagnósticos TypeScript antes da primeira edição de código, iniciar a prévia na porta configurada (3000), conferir `GET /manus-routes.json` e validar o build de produção.
+Importar o projeto Vite/React do ZIP na prévia gerenciada, preservar o lockfile e executar a instalação/build com a versão de pnpm declarada. Carregar os modelos da galeria e os componentes técnicos sem bloquear a primeira renderização; oferecer foto/alternativa explicativa caso WebGL ou o visualizador dos componentes falhe. Registrar diagnósticos TypeScript antes da primeira edição de código, iniciar a prévia na porta configurada (3000), conferir `GET /manus-routes.json` e validar o build de produção.
 
 Depois de revisar o diff contra a branch atual de `Mateusmfmd/web_tcc`, enviar apenas os arquivos da página para uma branch com nome de redesign, preservar arquivos não relacionados e confirmar o resultado remoto. A `main` permanecerá intacta até a aprovação explícita do usuário; nenhum merge ou publicação será iniciado nesta etapa.

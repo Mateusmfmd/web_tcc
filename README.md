@@ -1,32 +1,30 @@
-# M.O.T.I.O.N. — demonstração web
+# M.O.T.I.O.N. — site de demonstração
 
-Página web demonstrativa do projeto **M.O.T.I.O.N.**, uma solução de tecnologia assistiva e comunicação alternativa.
+Esta branch contém uma **prévia de integração** da reformulação React do projeto M.O.T.I.O.N. A página de entrada (`index.html` e `motion-web.html`) mostra a versão nova para avaliação; ela ainda não foi mesclada na `main`.
 
-## Conteúdo
+## Versões
 
-- `motion-web.html`: página web estática para apresentação do projeto.
+- `motion-web.html` e `index.html`: prévia React integrada na raiz.
+- `motion-web-legacy.html`: cópia da página que estava na `main` antes desta prévia, inclusive as interações e modelos 3D recentes. Os arquivos originais em `assets/` foram preservados.
+- `motion-redesign-source/`: código React, TypeScript e Vite.
+- `motion-redesign/`: cópia estática separada da prévia.
 
-## Como executar
+## Abrir localmente
+
+Na raiz do repositório:
 
 ```bash
-git clone https://github.com/Mateusmfmd/web_tcc.git
-cd web_tcc
 python3 -m http.server 8000
 ```
 
-Abra `http://localhost:8000/motion-web.html` no navegador.
+Acesse `http://localhost:8000/` ou `http://localhost:8000/motion-web.html`.
 
-
-## Nova prévia React
-
-A reformulação para avaliação fica em `motion-redesign/motion-web.html`. A página antiga `motion-web.html` foi mantida sem alterações. O código-fonte React, TypeScript e Vite está em `motion-redesign-source/`.
-
-Na raiz do repositório, execute `python3 -m http.server 8000` e abra `http://localhost:8000/motion-redesign/motion-web.html` para conferir o build estático.
-
-Para editar a fonte e atualizar esse build:
+## Atualizar a prévia integrada
 
 ```bash
 cd motion-redesign-source
 pnpm install --frozen-lockfile
-pnpm build:github
+pnpm build:root-preview
 ```
+
+O comando compila o React e sincroniza os arquivos para a raiz, preservando os modelos de hardware que já existem em `assets/`. Para atualizar somente a cópia isolada em `motion-redesign/`, use `pnpm build:github`.

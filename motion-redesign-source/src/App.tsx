@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { createElement, lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring } from 'motion/react'
 import {
   ArrowDown, ArrowRight, ArrowUpRight, BarChart3, Bell, CalendarDays, Check,
@@ -369,8 +369,114 @@ function ButtonExperience() {
             Tecla {colorNames[selected].toLowerCase()} selecionada. A frase correspondente aparece no campo acima.
           </p>
         </div>
+        <TechnicalModelSection />
       </div>
     </section>
+  )
+}
+
+const technicalModels = [
+  {
+    title: 'Botão tátil',
+    description: 'A peça física que a criança pode acionar.',
+    src: 'assets/botao-tatil.glb',
+    alt: 'Modelo 3D interativo do botão tátil do M.O.T.I.O.N.',
+  },
+  {
+    title: 'Sensor ultrassônico',
+    description: 'Um componente do protótipo para leitura por proximidade.',
+    src: 'assets/sensor-ultrassonico.glb',
+    alt: 'Modelo 3D interativo do sensor ultrassônico do M.O.T.I.O.N.',
+  },
+]
+
+let modelViewerLoad: Promise<void> | undefined
+
+function loadModelViewer() {
+  if (customElements.get('model-viewer')) return Promise.resolve()
+  if (modelViewerLoad) return modelViewerLoad
+  modelViewerLoad = new Promise<void>((resolve, reject) => {
+    const script = document.createElement('script')
+    script.type = 'module'
+    script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js'
+    script.addEventListener('load', () => resolve(), { once: true })
+    script.addEventListener('error', () => reject(new Error('O visualizador 3D não carregou.')), { once: true })
+    document.head.append(script)
+  })
+  return modelViewerLoad
+}
+
+function TechnicalModelSection() {
+  return (
+    <div className="technical-models">
+      <div className="technical-models-heading">
+        <Eyebrow>Outras peças do protótipo</Eyebrow>
+        <h3>Explore os componentes em 3D.</h3>
+        <p>Arraste para girar e veja o botão tátil e o sensor de diferentes ângulos.</p>
+      </div>
+      <div className="technical-models-grid">
+        {technicalModels.map((model, index) => (
+          <TechnicalModelCard key={model.src} {...model} number={index + 1} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function TechnicalModelCard({ title, description, src, alt, number }: {
+  title: string; description: string; src: string; alt: string; number: number
+}) {
+  const cardRef = useRef<HTMLElement>(null)
+  const [nearViewport, setNearViewport] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    const node = cardRef.current
+    if (!node) return
+    if (!('IntersectionObserver' in window)) { setNearViewport(true); return }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setNearViewport(true); observer.disconnect() }
+    }, { rootMargin: '280px' })
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!nearViewport) return
+    let active = true
+    loadModelViewer().then(() => {
+      if (active) setLoaded(true)
+    }).catch(() => {
+      if (active) setFailed(true)
+    })
+    return () => { active = false }
+  }, [nearViewport])
+
+  return (
+    <article ref={cardRef} className="technical-model-card">
+      <div className="technical-model-copy">
+        <span className="technical-model-number">{String(number).padStart(2, '0')}</span>
+        <div><h4>{title}</h4><p>{description}</p></div>
+      </div>
+      {loaded ? createElement('model-viewer', {
+        src: `${import.meta.env.BASE_URL}${src}`,
+        alt,
+        'camera-controls': '',
+        'touch-action': 'pan-y',
+        'interaction-prompt': 'auto',
+        'shadow-intensity': '1',
+        exposure: '1',
+        'environment-image': 'neutral',
+        loading: 'lazy',
+        reveal: 'auto',
+      }) : (
+        <div className="technical-model-placeholder" role="status">
+          {failed ? 'Este modelo 3D não carregou. A foto e a demonstração principal continuam disponíveis.' : 'O modelo 3D aparece quando você chegar aqui.'}
+        </div>
+      )}
+      <div className="technical-model-hint"><span>Arraste para girar</span><span aria-hidden="true">↗</span></div>
+    </article>
   )
 }
 

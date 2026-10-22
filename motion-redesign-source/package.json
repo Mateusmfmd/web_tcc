@@ -8,6 +8,7 @@
     "dev": "vite --host 0.0.0.0 --port 3000",
     "build": "tsc -b && vite build",
     "build:github": "pnpm build && node scripts/sync-static.mjs",
+    "build:root-preview": "pnpm build && node scripts/sync-root-preview.mjs",
     "preview": "vite preview --host 0.0.0.0 --port 3000",
     "lint": "tsc -b --pretty false"
   },

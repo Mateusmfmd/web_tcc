@@ -760,3 +760,51 @@ h3 { margin-bottom: 10px; font-size: clamp(1.8rem, 2.6vw, 2.55rem); line-height:
   .button-how-steps li b { font-size: .58rem; }
   .button-how-steps li span { font-size: .51rem; }
 }
+
+
+/* Modelos 3D de componentes preservados da versão atual do web_tcc */
+.technical-models {
+  margin-top: 28px;
+  padding: clamp(21px, 3vw, 34px);
+  border: 1px solid #dce8e7;
+  border-radius: 24px;
+  background: #f5f9fa;
+}
+.technical-models-heading { max-width: 650px; margin-bottom: 18px; }
+.technical-models-heading h3 { margin-top: 8px; color: var(--navy); font: 400 clamp(1.65rem, 3vw, 2.25rem)/1.08 var(--serif); }
+.technical-models-heading p { margin-top: 8px; color: var(--muted); font-size: .74rem; line-height: 1.5; }
+.technical-models-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.technical-model-card { min-width: 0; padding: 18px; border: 1px solid #e0e9e8; border-radius: 19px; background: var(--paper); box-shadow: var(--shadow-card); }
+.technical-model-copy { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 10px; align-items: start; }
+.technical-model-number { padding-top: 4px; color: var(--coral); font-size: .68rem; font-weight: 700; }
+.technical-model-copy h4 { color: var(--navy); font: 400 1.48rem/1.12 var(--serif); }
+.technical-model-copy p { margin-top: 5px; color: var(--muted); font-size: .66rem; line-height: 1.45; }
+.technical-model-card model-viewer {
+  display: block;
+  width: 100%;
+  height: 270px;
+  margin-top: 15px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: radial-gradient(ellipse at 50% 55%, #fff 0%, #f2f8fa 62%, #eaf3f6 100%);
+}
+.technical-model-placeholder {
+  display: grid;
+  min-height: 270px;
+  place-items: center;
+  margin-top: 15px;
+  padding: 20px;
+  border-radius: 14px;
+  background: radial-gradient(ellipse at 50% 55%, #fff 0%, #f2f8fa 62%, #eaf3f6 100%);
+  color: var(--muted);
+  font-size: .7rem;
+  line-height: 1.45;
+  text-align: center;
+}
+.technical-model-hint { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; color: #647989; font-size: .61rem; }
+@media (max-width: 720px) {
+  .technical-models { padding: 18px 12px; border-radius: 18px; }
+  .technical-models-grid { grid-template-columns: 1fr; gap: 12px; }
+  .technical-model-card { padding: 14px; }
+  .technical-model-card model-viewer, .technical-model-placeholder { height: 245px; min-height: 245px; }
+}
