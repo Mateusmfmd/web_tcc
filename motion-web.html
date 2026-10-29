@@ -1535,7 +1535,9 @@
   const slideDuration = 320;
   const slideInterval = 360;
   const presentationHeader = document.querySelector('.site-header');
-  let presentationPageIndex = Math.max(0, presentationPages.findIndex(page => page.classList.contains('active')));
+  let presentationPageIndex = 0;
+  const minimumPageDisplay = 5000;
+  let pageStartedAt = performance.now();
   let autoScrollTimer = null;
   let autoScrollActive = false;
   let presentationAnimationFrame = 0;
@@ -1559,10 +1561,13 @@
   }
   function autoScrollStep() {
     if (!autoScrollActive || document.hidden) return;
+    const remainingDisplay = minimumPageDisplay - (performance.now() - pageStartedAt);
+    if (remainingDisplay > 0) { autoScrollTimer = setTimeout(autoScrollStep, remainingDisplay); return; }
     const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
     if (window.scrollY >= maxY - 3) {
       presentationPageIndex = (presentationPageIndex + 1) % presentationPages.length;
       showPage(presentationPages[presentationPageIndex].dataset.page);
+      pageStartedAt = performance.now();
       updatePresentationStatus();
       autoScrollTimer = setTimeout(autoScrollStep, 650);
       return;
@@ -1584,11 +1589,14 @@
       autoScrollTimer = setTimeout(autoScrollStep, 700);
     } else autoScrollStatus.textContent = message || 'apresentação pausada';
   }
+  // A apresentação sempre começa pela primeira aba e pelo topo da página.
+  if (presentationPages.length) { showPage(presentationPages[0].dataset.page); window.scrollTo(0, 0); }
   autoScrollButton.addEventListener('click', () => setAutoScroll(!autoScrollActive));
   // Toques comuns não interrompem a apresentação em celulares.
   window.addEventListener('wheel', () => { if (autoScrollActive) setAutoScroll(false, 'pausada ao interagir'); }, {passive:true});
   presentationTabs.forEach((tab,index) => tab.addEventListener('click', () => {
     presentationPageIndex = index;
+    pageStartedAt = performance.now();
     if (autoScrollActive) setAutoScroll(false, 'pausada ao trocar de página');
     else updatePresentationStatus();
   }));
