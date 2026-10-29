@@ -592,7 +592,7 @@
 </style>
 </head>
 <body>
-<button class="autoscroll-control" id="autoScrollToggle" type="button" aria-pressed="true" aria-label="Pausar rolagem automática">⏸ <span id="autoScrollLabel">Pausar</span><span class="autoscroll-status" id="autoScrollStatus">apresentação automática</span></button>
+<button class="autoscroll-control" id="autoScrollToggle" type="button" aria-pressed="true" aria-label="Pausar apresentação automática">⏸ <span id="autoScrollLabel">Pausar</span><span class="autoscroll-status" id="autoScrollStatus">iniciando apresentação</span></button>
 
 
 <a class="skip-link" href="#main">Pular para o conteúdo</a>
@@ -1528,32 +1528,67 @@
 </script>
 
 <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js">
-  // ---------- Apresentação automática ----------
+  // ---------- Apresentação automática em páginas e looping ----------
   const autoScrollButton = document.getElementById('autoScrollToggle');
   const autoScrollLabel = document.getElementById('autoScrollLabel');
   const autoScrollStatus = document.getElementById('autoScrollStatus');
+  const presentationPages = Array.from(document.querySelectorAll('main#top > .app-page'));
+  const presentationSections = presentationPages.map(page => Array.from(page.querySelectorAll(':scope > section')));
+  const presentationHeader = document.querySelector('.site-header');
+  let presentationPageIndex = Math.max(0, presentationPages.findIndex(page => page.classList.contains('active')));
+  let presentationSectionIndex = 0;
   let autoScrollTimer = null;
   let autoScrollActive = false;
+  function findCurrentPresentationSection() {
+    const sections = presentationSections[presentationPageIndex] || [];
+    const threshold = window.scrollY + (presentationHeader?.offsetHeight || 0) + 10;
+    let current = 0;
+    sections.forEach((section, index) => {
+      if (section.getBoundingClientRect().top + window.scrollY <= threshold) current = index;
+    });
+    presentationSectionIndex = current;
+  }
+  function updatePresentationStatus() {
+    const total = presentationPages.length;
+    const sectionTotal = presentationSections[presentationPageIndex]?.length || 1;
+    autoScrollStatus.textContent = `página ${presentationPageIndex + 1}/${total} · seção ${presentationSectionIndex + 1}/${sectionTotal}`;
+  }
   function setAutoScroll(active, message) {
     autoScrollActive = active;
     document.documentElement.classList.toggle('autoscrolling', active);
     clearTimeout(autoScrollTimer);
     autoScrollButton.setAttribute('aria-pressed', active ? 'true' : 'false');
-    autoScrollButton.setAttribute('aria-label', active ? 'Pausar rolagem automática' : 'Iniciar rolagem automática');
+    autoScrollButton.setAttribute('aria-label', active ? 'Pausar apresentação automática' : 'Continuar apresentação automática');
     autoScrollLabel.textContent = active ? 'Pausar' : 'Continuar';
     autoScrollButton.firstChild.textContent = active ? '⏸ ' : '▶ ';
-    autoScrollStatus.textContent = message || (active ? 'apresentação automática' : 'pausada');
-    if (active) autoScrollTimer = setTimeout(autoScrollStep, 700);
+    if (active) {
+      findCurrentPresentationSection();
+      updatePresentationStatus();
+      autoScrollTimer = setTimeout(autoScrollStep, 9000);
+    } else {
+      autoScrollStatus.textContent = message || 'apresentação pausada';
+    }
+  }
+  function scrollToPresentationSection(section) {
+    const headerHeight = presentationHeader?.offsetHeight || 0;
+    const top = Math.max(0, window.scrollY + section.getBoundingClientRect().top - headerHeight - 10);
+    window.scrollTo({top, behavior:'smooth'});
   }
   function autoScrollStep() {
-    if (!autoScrollActive || document.hidden) return;
-    const page = document.documentElement;
-    if (window.scrollY + window.innerHeight >= page.scrollHeight - 2) {
-      setAutoScroll(false, 'fim da apresentação');
-      return;
+    if (!autoScrollActive || document.hidden || !presentationPages.length) return;
+    const sections = presentationSections[presentationPageIndex] || [];
+    if (presentationSectionIndex + 1 < sections.length) {
+      presentationSectionIndex++;
+      scrollToPresentationSection(sections[presentationSectionIndex]);
+    } else {
+      presentationPageIndex = (presentationPageIndex + 1) % presentationPages.length;
+      presentationSectionIndex = 0;
+      showPage(presentationPages[presentationPageIndex].dataset.page);
+      const firstSection = presentationSections[presentationPageIndex]?.[0];
+      if (firstSection) requestAnimationFrame(() => scrollToPresentationSection(firstSection));
     }
-    window.scrollBy(0, 2);
-    autoScrollTimer = setTimeout(autoScrollStep, 40);
+    updatePresentationStatus();
+    autoScrollTimer = setTimeout(autoScrollStep, 9000);
   }
   autoScrollButton.addEventListener('click', () => setAutoScroll(!autoScrollActive));
   ['wheel','touchstart','keydown'].forEach(type => window.addEventListener(type, () => {
@@ -1563,9 +1598,9 @@
     if (!event.target.closest('#autoScrollToggle') && autoScrollActive) setAutoScroll(false, 'pausada ao interagir');
   });
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden && autoScrollActive) setAutoScroll(false, 'pausada');
+    if (document.hidden && autoScrollActive) setAutoScroll(false, 'apresentação pausada');
   });
-  setTimeout(() => setAutoScroll(true), 1200);
+  setTimeout(() => setAutoScroll(true), 1500);
 </script>
 
 
