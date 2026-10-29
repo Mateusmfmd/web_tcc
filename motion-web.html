@@ -1525,62 +1525,50 @@
     e.preventDefault();
     window.scrollTo({top:0, behavior:'smooth'});
   });
-  // ---------- Apresentação automática: rola as seções e percorre as três páginas ----------
+  // ---------- Apresentação automática: pequenos deslizes contínuos entre as três páginas ----------
   const autoScrollButton = document.getElementById('autoScrollToggle');
   const autoScrollLabel = document.getElementById('autoScrollLabel');
   const autoScrollStatus = document.getElementById('autoScrollStatus');
   const presentationPages = Array.from(document.querySelectorAll('main#top > .app-page'));
-  const presentationSections = presentationPages.map(page => Array.from(page.querySelectorAll(':scope > section')));
   const presentationTabs = Array.from(document.querySelectorAll('.page-tabs .tab'));
-  const presentationInterval = 4000;
+  const slideDistance = 42;
+  const slideDuration = 220;
+  const slideInterval = 280;
   const presentationHeader = document.querySelector('.site-header');
   let presentationPageIndex = Math.max(0, presentationPages.findIndex(page => page.classList.contains('active')));
-  let presentationSectionIndex = 0;
   let autoScrollTimer = null;
   let autoScrollActive = false;
   let presentationAnimationFrame = 0;
-  function scrollToPresentationSection(section) {
+  function updatePresentationStatus() {
+    autoScrollStatus.textContent = `página ${presentationPageIndex + 1}/${presentationPages.length} · deslizando`;
+  }
+  function glideBySmallStep(distance) {
     if (presentationAnimationFrame) cancelAnimationFrame(presentationAnimationFrame);
-    const headerHeight = presentationHeader ? presentationHeader.offsetHeight : 0;
     const startY = window.scrollY;
-    const targetY = Math.max(0, startY + section.getBoundingClientRect().top - headerHeight - 12);
-    const distance = targetY - startY;
-    const duration = Math.min(1800, Math.max(700, Math.abs(distance) * 0.65));
+    const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const targetY = Math.min(maxY, startY + distance);
     const startedAt = performance.now();
     function glide(now) {
-      const progress = Math.min(1, (now - startedAt) / duration);
-      const eased = progress < 0.5
-        ? 4 * progress * progress * progress
-        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-      window.scrollTo(0, startY + distance * eased);
+      const progress = Math.min(1, (now - startedAt) / slideDuration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      window.scrollTo(0, startY + (targetY - startY) * eased);
       if (progress < 1 && autoScrollActive) presentationAnimationFrame = requestAnimationFrame(glide);
       else presentationAnimationFrame = 0;
     }
     presentationAnimationFrame = requestAnimationFrame(glide);
   }
-  function updatePresentationStatus() {
-    const count = presentationSections[presentationPageIndex].length;
-    autoScrollStatus.textContent = `página ${presentationPageIndex + 1}/${presentationPages.length} · parte ${presentationSectionIndex + 1}/${count}`;
-  }
-  function schedulePresentationStep() {
-    clearTimeout(autoScrollTimer);
-    if (autoScrollActive) autoScrollTimer = setTimeout(autoScrollStep, presentationInterval);
-  }
   function autoScrollStep() {
     if (!autoScrollActive || document.hidden) return;
-    const sections = presentationSections[presentationPageIndex] || [];
-    if (presentationSectionIndex + 1 < sections.length) {
-      presentationSectionIndex++;
-      scrollToPresentationSection(sections[presentationSectionIndex]);
-    } else {
+    const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    if (window.scrollY >= maxY - 3) {
       presentationPageIndex = (presentationPageIndex + 1) % presentationPages.length;
-      presentationSectionIndex = 0;
       showPage(presentationPages[presentationPageIndex].dataset.page);
-      const firstSection = presentationSections[presentationPageIndex][0];
-      if (firstSection) requestAnimationFrame(() => requestAnimationFrame(() => scrollToPresentationSection(firstSection)));
+      updatePresentationStatus();
+      autoScrollTimer = setTimeout(autoScrollStep, 650);
+      return;
     }
-    updatePresentationStatus();
-    schedulePresentationStep();
+    glideBySmallStep(slideDistance);
+    autoScrollTimer = setTimeout(autoScrollStep, slideInterval);
   }
   function setAutoScroll(active, message) {
     autoScrollActive = active;
@@ -1593,7 +1581,7 @@
     autoScrollButton.firstChild.textContent = active ? '⏸ ' : '▶ ';
     if (active) {
       updatePresentationStatus();
-      schedulePresentationStep();
+      autoScrollTimer = setTimeout(autoScrollStep, 700);
     } else autoScrollStatus.textContent = message || 'apresentação pausada';
   }
   autoScrollButton.addEventListener('click', () => setAutoScroll(!autoScrollActive));
@@ -1601,7 +1589,6 @@
   window.addEventListener('wheel', () => { if (autoScrollActive) setAutoScroll(false, 'pausada ao interagir'); }, {passive:true});
   presentationTabs.forEach((tab,index) => tab.addEventListener('click', () => {
     presentationPageIndex = index;
-    presentationSectionIndex = 0;
     if (autoScrollActive) setAutoScroll(false, 'pausada ao trocar de página');
     else updatePresentationStatus();
   }));
