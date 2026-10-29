@@ -1525,50 +1525,73 @@
     e.preventDefault();
     window.scrollTo({top:0, behavior:'smooth'});
   });
-  // ---------- Apresentação automática: três páginas do menu em looping ----------
+  // ---------- Apresentação automática: rola as seções e percorre as três páginas ----------
   const autoScrollButton = document.getElementById('autoScrollToggle');
   const autoScrollLabel = document.getElementById('autoScrollLabel');
   const autoScrollStatus = document.getElementById('autoScrollStatus');
-  const presentationPages = Array.from(document.querySelectorAll('.app-page'));
+  const presentationPages = Array.from(document.querySelectorAll('main#top > .app-page'));
+  const presentationSections = presentationPages.map(page => Array.from(page.querySelectorAll(':scope > section')));
   const presentationTabs = Array.from(document.querySelectorAll('.page-tabs .tab'));
-  const presentationInterval = 12000;
+  const presentationInterval = 8000;
+  const presentationHeader = document.querySelector('.site-header');
   let presentationPageIndex = Math.max(0, presentationPages.findIndex(page => page.classList.contains('active')));
+  let presentationSectionIndex = 0;
   let autoScrollTimer = null;
   let autoScrollActive = false;
-  function showPresentationPage(index) {
-    presentationPageIndex = (index + presentationPages.length) % presentationPages.length;
-    const pageNumber = presentationPages[presentationPageIndex].dataset.page;
-    showPage(pageNumber);
-    autoScrollStatus.textContent = `página ${presentationPageIndex + 1} de ${presentationPages.length}`;
+  function scrollToPresentationSection(section) {
+    const headerHeight = presentationHeader ? presentationHeader.offsetHeight : 0;
+    const top = Math.max(0, window.scrollY + section.getBoundingClientRect().top - headerHeight - 12);
+    window.scrollTo({top:top, behavior:'smooth'});
+  }
+  function updatePresentationStatus() {
+    const count = presentationSections[presentationPageIndex].length;
+    autoScrollStatus.textContent = `página ${presentationPageIndex + 1}/${presentationPages.length} · parte ${presentationSectionIndex + 1}/${count}`;
+  }
+  function schedulePresentationStep() {
+    clearTimeout(autoScrollTimer);
+    if (autoScrollActive) autoScrollTimer = setTimeout(autoScrollStep, presentationInterval);
+  }
+  function autoScrollStep() {
+    if (!autoScrollActive || document.hidden) return;
+    const sections = presentationSections[presentationPageIndex] || [];
+    if (presentationSectionIndex + 1 < sections.length) {
+      presentationSectionIndex++;
+      scrollToPresentationSection(sections[presentationSectionIndex]);
+    } else {
+      presentationPageIndex = (presentationPageIndex + 1) % presentationPages.length;
+      presentationSectionIndex = 0;
+      showPage(presentationPages[presentationPageIndex].dataset.page);
+      const firstSection = presentationSections[presentationPageIndex][0];
+      if (firstSection) requestAnimationFrame(() => requestAnimationFrame(() => scrollToPresentationSection(firstSection)));
+    }
+    updatePresentationStatus();
+    schedulePresentationStep();
   }
   function setAutoScroll(active, message) {
     autoScrollActive = active;
+    document.documentElement.classList.toggle('autoscrolling', active);
     clearTimeout(autoScrollTimer);
     autoScrollButton.setAttribute('aria-pressed', active ? 'true' : 'false');
     autoScrollButton.setAttribute('aria-label', active ? 'Pausar apresentação automática' : 'Continuar apresentação automática');
     autoScrollLabel.textContent = active ? 'Pausar' : 'Continuar';
     autoScrollButton.firstChild.textContent = active ? '⏸ ' : '▶ ';
-    autoScrollStatus.textContent = message || `página ${presentationPageIndex + 1} de ${presentationPages.length}`;
-    if (active) autoScrollTimer = setTimeout(() => {
-      showPresentationPage((presentationPageIndex + 1) % presentationPages.length);
-      setAutoScroll(true);
-    }, presentationInterval);
+    if (active) {
+      updatePresentationStatus();
+      schedulePresentationStep();
+    } else autoScrollStatus.textContent = message || 'apresentação pausada';
   }
   autoScrollButton.addEventListener('click', () => setAutoScroll(!autoScrollActive));
-  ['wheel','touchstart','keydown'].forEach(type => window.addEventListener(type, () => {
-    if (autoScrollActive) setAutoScroll(false, 'pausada ao interagir');
-  }, {passive:true}));
-  document.addEventListener('click', event => {
-    if (!event.target.closest('#autoScrollToggle') && autoScrollActive) setAutoScroll(false, 'pausada ao interagir');
-  });
+  // Toques comuns não interrompem a apresentação em celulares.
+  window.addEventListener('wheel', () => { if (autoScrollActive) setAutoScroll(false, 'pausada ao interagir'); }, {passive:true});
+  presentationTabs.forEach((tab,index) => tab.addEventListener('click', () => {
+    presentationPageIndex = index;
+    presentationSectionIndex = 0;
+    if (autoScrollActive) setAutoScroll(false, 'pausada ao trocar de página');
+    else updatePresentationStatus();
+  }));
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && autoScrollActive) setAutoScroll(false, 'apresentação pausada');
   });
-  presentationTabs.forEach((tab,index) => tab.addEventListener('click', () => {
-    presentationPageIndex = index;
-    if (autoScrollActive) setAutoScroll(false, 'pausada ao trocar de página');
-    else autoScrollStatus.textContent = `página ${presentationPageIndex + 1} de ${presentationPages.length}`;
-  }));
   setTimeout(() => setAutoScroll(true), 1200);
 </script>
 
