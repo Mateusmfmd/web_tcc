@@ -1532,7 +1532,7 @@
   const presentationPages = Array.from(document.querySelectorAll('main#top > .app-page'));
   const presentationSections = presentationPages.map(page => Array.from(page.querySelectorAll(':scope > section')));
   const presentationTabs = Array.from(document.querySelectorAll('.page-tabs .tab'));
-  const presentationInterval = 8000;
+  const presentationInterval = 4000;
   const presentationHeader = document.querySelector('.site-header');
   let presentationPageIndex = Math.max(0, presentationPages.findIndex(page => page.classList.contains('active')));
   let presentationSectionIndex = 0;
