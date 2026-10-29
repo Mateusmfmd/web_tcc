@@ -1538,10 +1538,25 @@
   let presentationSectionIndex = 0;
   let autoScrollTimer = null;
   let autoScrollActive = false;
+  let presentationAnimationFrame = 0;
   function scrollToPresentationSection(section) {
+    if (presentationAnimationFrame) cancelAnimationFrame(presentationAnimationFrame);
     const headerHeight = presentationHeader ? presentationHeader.offsetHeight : 0;
-    const top = Math.max(0, window.scrollY + section.getBoundingClientRect().top - headerHeight - 12);
-    window.scrollTo({top:top, behavior:'smooth'});
+    const startY = window.scrollY;
+    const targetY = Math.max(0, startY + section.getBoundingClientRect().top - headerHeight - 12);
+    const distance = targetY - startY;
+    const duration = Math.min(1800, Math.max(700, Math.abs(distance) * 0.65));
+    const startedAt = performance.now();
+    function glide(now) {
+      const progress = Math.min(1, (now - startedAt) / duration);
+      const eased = progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      window.scrollTo(0, startY + distance * eased);
+      if (progress < 1 && autoScrollActive) presentationAnimationFrame = requestAnimationFrame(glide);
+      else presentationAnimationFrame = 0;
+    }
+    presentationAnimationFrame = requestAnimationFrame(glide);
   }
   function updatePresentationStatus() {
     const count = presentationSections[presentationPageIndex].length;
@@ -1571,6 +1586,7 @@
     autoScrollActive = active;
     document.documentElement.classList.toggle('autoscrolling', active);
     clearTimeout(autoScrollTimer);
+    if (!active && presentationAnimationFrame) { cancelAnimationFrame(presentationAnimationFrame); presentationAnimationFrame = 0; }
     autoScrollButton.setAttribute('aria-pressed', active ? 'true' : 'false');
     autoScrollButton.setAttribute('aria-label', active ? 'Pausar apresentação automática' : 'Continuar apresentação automática');
     autoScrollLabel.textContent = active ? 'Pausar' : 'Continuar';
