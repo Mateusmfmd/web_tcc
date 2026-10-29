@@ -1531,12 +1531,12 @@
   const autoScrollStatus = document.getElementById('autoScrollStatus');
   const presentationPages = Array.from(document.querySelectorAll('main#top > .app-page'));
   const presentationTabs = Array.from(document.querySelectorAll('.page-tabs .tab'));
-  const slideDistance = 54;
-  const slideDuration = 320;
-  const slideInterval = 360;
+  const slideDistance = 42;
+  const slideDuration = 220;
+  const slideInterval = 280;
   const presentationHeader = document.querySelector('.site-header');
   let presentationPageIndex = 0;
-  const minimumPageDisplay = 5000;
+  const minimumPageDisplay = 4000;
   let pageStartedAt = performance.now();
   let autoScrollTimer = null;
   let autoScrollActive = false;
