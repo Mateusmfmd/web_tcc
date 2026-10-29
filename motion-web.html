@@ -1531,8 +1531,9 @@
   const autoScrollStatus = document.getElementById('autoScrollStatus');
   const presentationPages = Array.from(document.querySelectorAll('main#top > .app-page'));
   const presentationTabs = Array.from(document.querySelectorAll('.page-tabs .tab'));
-  let scrollStepsSincePause = 0;
-  let pauseAfterSteps = 6 + Math.floor(Math.random() * 5);
+  const slideDistance = 54;
+  const slideDuration = 320;
+  const slideInterval = 360;
   const presentationHeader = document.querySelector('.site-header');
   let presentationPageIndex = Math.max(0, presentationPages.findIndex(page => page.classList.contains('active')));
   let autoScrollTimer = null;
@@ -1566,18 +1567,8 @@
       autoScrollTimer = setTimeout(autoScrollStep, 650);
       return;
     }
-    const distance = 30 + Math.random() * 42;
-    const duration = 260 + Math.random() * 300;
-    glideBySmallStep(distance, duration);
-    scrollStepsSincePause++;
-    const briefRest = 100 + Math.random() * 180;
-    if (scrollStepsSincePause >= pauseAfterSteps) {
-      scrollStepsSincePause = 0;
-      pauseAfterSteps = 6 + Math.floor(Math.random() * 5);
-      autoScrollTimer = setTimeout(autoScrollStep, duration + 400 + Math.random() * 600);
-    } else {
-      autoScrollTimer = setTimeout(autoScrollStep, duration + briefRest);
-    }
+    glideBySmallStep(slideDistance, slideDuration);
+    autoScrollTimer = setTimeout(autoScrollStep, slideInterval);
   }
   function setAutoScroll(active, message) {
     autoScrollActive = active;
