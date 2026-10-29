@@ -583,6 +583,7 @@
   @media(prefers-reduced-motion:reduce){.model-card{transition:none}.model-card:hover{transform:none}}
 
   /* ---------- Apresentação automática ---------- */
+  html.autoscrolling{scroll-behavior:auto !important}
   .autoscroll-control{position:fixed;right:22px;bottom:22px;z-index:1000;display:flex;align-items:center;gap:10px;padding:11px 16px;border:0;border-radius:999px;background:#153d75;color:#fff;font:600 14px/1.2 Inter,sans-serif;box-shadow:0 8px 24px rgba(17,39,70,.25);cursor:pointer}
   .autoscroll-control:hover{background:#0f2f5c;transform:translateY(-1px)}
   .autoscroll-control:focus-visible{outline:3px solid #f2b544;outline-offset:3px}
@@ -1529,11 +1530,11 @@
   const autoScrollButton = document.getElementById('autoScrollToggle');
   const autoScrollLabel = document.getElementById('autoScrollLabel');
   const autoScrollStatus = document.getElementById('autoScrollStatus');
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let autoScrollTimer = null;
   let autoScrollActive = false;
   function setAutoScroll(active, message) {
     autoScrollActive = active;
+    document.documentElement.classList.toggle('autoscrolling', active);
     clearTimeout(autoScrollTimer);
     autoScrollButton.setAttribute('aria-pressed', active ? 'true' : 'false');
     autoScrollButton.setAttribute('aria-label', active ? 'Pausar rolagem automática' : 'Iniciar rolagem automática');
@@ -1562,8 +1563,7 @@
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && autoScrollActive) setAutoScroll(false, 'pausada');
   });
-  if (reduceMotion.matches) setAutoScroll(false, 'toque para iniciar');
-  else setTimeout(() => setAutoScroll(true), 1200);
+  setTimeout(() => setAutoScroll(true), 1200);
 </script>
 
 <button class="autoscroll-control" id="autoScrollToggle" type="button" aria-pressed="true" aria-label="Pausar rolagem automática">⏸ <span id="autoScrollLabel">Pausar</span><span class="autoscroll-status" id="autoScrollStatus">apresentação automática</span></button>
